@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.io.OutputStream;
+import java.io.InputStream;
 
 
 class UtilData {
 	public static String IP = "127.0.0.1";
 	public static int PORT = 8080;
+	public static String GETLOCALTIME = "GETLOCALTIME";
 }
 
 
@@ -57,8 +59,12 @@ class GetLocalTime{
 		int lenghtMess = localTime.getSize()+valid.getSize();
 		byte[] commandBuffer = new byte[100 + 4 + lenghtMess];
 		
+		for (int i = 0 ; i < commandBuffer.length ; i ++){
+			commandBuffer[i] = (byte)' ';
+		}
 
-		String commandString = "GETLOCALTIME";
+
+		String commandString = UtilData.GETLOCALTIME;
 
 		for(int i = 0 ; i < commandString.length() ; i ++){
 			commandBuffer[i] = (byte)commandString.charAt(i); // buff [0,99] up to offset = 100
@@ -117,13 +123,14 @@ class GetLocalTime{
 	  private OutputStream output = null;
 
 
+
 	  //parametrized constructor for CilentSideProgram
 	  public void SocketClient(String address, Integer port,byte[] commandString) {
 
 	    //code to establish a connection
 	    try {
 	      socket = new Socket(address, port);
-	      input = new DataInputStream(System.in);
+
 
 	      // sends output to the socket
 	      output = socket.getOutputStream();
@@ -137,13 +144,54 @@ class GetLocalTime{
 		try {
 		   
 		    int lenOfCommandString = commandString.length;
-		    System.out.println(lenOfCommandString);
+		    System.out.println("len  = "+lenOfCommandString);
+		    System.out.println(new String(commandString,"UTF-8"));
 		    System.out.println(commandString);
 		    output.write(commandString, 0, lenOfCommandString);
 		    output.flush();
 		} catch (IOException e) {
 		    e.printStackTrace();
 		}
+
+		boolean end = false;
+		byte[] messageByte = new byte[200];
+	    try 
+	    {
+	        DataInputStream in = new DataInputStream(socket.getInputStream());
+
+	        int lenofmessage = 113;
+	        int cnt = 0;
+	        String dataString = "";
+	        while(!end)
+	        {
+	            int bytesRead = in.read(messageByte);
+	            dataString += new String(messageByte, 0, bytesRead);
+	            if (dataString.length() >= lenofmessage)
+	            {
+
+	                end = true; 
+		        	System.out.println("MESSAGE LOCAL TIME SERVER : |" + dataString+"|"+dataString.length() );
+		        	break;
+	            	     
+	            }
+	            cnt ++;
+	        
+	        }
+	        System.out.println("MESSAGE: lenofmessage 1|" + dataString+"|");
+
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}
+
+
+		// try{
+			  
+		// 	  Calendar calendar = Calendar.getInstance();
+		// 	  calendar.setTimeInMillis(millis);
+		// 	  System.out.println(calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE));
+		// } catch (IOException e) {
+		//     e.printStackTrace();
+		// }
 
 	    //below code to close the connection
 	    try {
@@ -162,7 +210,7 @@ class GetLocalTime{
 
 // move to c_int.java file
 class c_int{
-	byte[] buf = new byte[4];
+	byte[] buf = new byte[5];
 
 	public void setValue(byte[] b){
 		this.buf = b;
