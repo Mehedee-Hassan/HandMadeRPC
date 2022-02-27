@@ -7,32 +7,114 @@
 #include <fcntl.h> // for open
 #include <unistd.h> // for close
 #include<pthread.h>
+#include<time.h>
 
-char client_message[2000];
-char buffer[1024];
+#define GETLOCALTIME "GETLOCALTIME"
+
+char client_message[112];
+// char buffer[1024];
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 void * socketThread(void *arg)
 {
+
+
+  char buffer[112];
+  
   int newSocket = *((int *)arg);
-  recv(newSocket , client_message , 2000 , 0);
+  
+  // received command message
+  recv(newSocket , client_message , 112 , 0);
 
   // Send message to the client socket 
   pthread_mutex_lock(&lock);
-  char *message = malloc(sizeof(client_message)+20);
+  char *message = malloc(sizeof(client_message));
   
-  strcpy(message,"Hello Client : ");
-  strcat(message,client_message);
-  strcat(message,"\n");
-  strcpy(buffer,message);
+
+  strcpy(message,client_message);
+  // for get local time
+  char *getLocaltime = GETLOCALTIME;
+  int equal = 1;
+  int i = 0;
+  while(message[i] != '\0' && getLocaltime[i]!='\0'){
+      if (message[i] != getLocaltime[i]){
+        equal = 0;
+      }
+      i ++;
+  }
+
+
+  if (equal){
+    printf("found == %s",message);
+    // time_t current_time;
+    // time(&current_time);
+    // printf("\n%ld\n", current_time);
+
+    // char timebuf[200];
+    // sprintf(timebuf, "%ld", current_time);
+    // printf("%s%ld\n",timebuf,sizeof(timebuf));
+    // send(newSocket,timebuf,200,0);
+
+    time_t curTime;
+    struct tm*time_info;
+    char timeString[9];
+    
+
+    time(&curTime);
+    time_info=localtime(&curTime);
+    strftime(timeString,sizeof(timeString),"%H:%M",time_info);
+    printf("time:");
+    puts(timeString);
+    // send(newSocket,timeString,9,0);
+
+
+
+    char sendMessage[121];
+
+    int j = 0 ;
+
+    for(j = 0;j < 112 && message[j] != '\0';j ++){
+      sendMessage[j] = message[j];
+      // copy main message and command
+    }
+    int k = 0;
+    for(j = 112;j < 121;j ++){
+      sendMessage[j] = timeString[k++];
+      // copy main message and command
+    }
+
+
+
+
+    send(newSocket,sendMessage,121,0);
+
+  }else{
+    printf("not equal");
+
+  }
+
+
+  // to do for local os ---------------------->
+
+
+  // strcpy(message,"Hello Client : ");
+  // strcat(message,client_message);
+  // strcat(message,"\n");
+  // strcpy(buffer,message);
+
+
+
   free(message);
   pthread_mutex_unlock(&lock);
   sleep(1);
-  send(newSocket,buffer,20,0);
+  // send(newSocket,buffer,20,0);
   printf("Exit socketThread \n %s",buffer);
   close(newSocket);
   pthread_exit(NULL);
 }
+
+
+
 
 int main(){
   int serverSocket, newSocket;
