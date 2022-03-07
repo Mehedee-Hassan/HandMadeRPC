@@ -12,14 +12,14 @@
 #define GETLOCALTIME "GETLOCALTIME"
 
 char client_message[112];
-// char buffer[1024];
+
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 void * socketThread(void *arg)
 {
 
 
-  char buffer[112];
+  char buffer[112];                           // message length is fixed
   
   int newSocket = *((int *)arg);
   
@@ -36,6 +36,8 @@ void * socketThread(void *arg)
   char *getLocaltime = GETLOCALTIME;
   int equal = 1;
   int i = 0;
+  
+  // check if the string is GETLCOALTIME command from client
   while(message[i] != '\0' && getLocaltime[i]!='\0'){
       if (message[i] != getLocaltime[i]){
         equal = 0;
@@ -45,15 +47,8 @@ void * socketThread(void *arg)
 
 
   if (equal){
-    printf("found == %s",message);
-    // time_t current_time;
-    // time(&current_time);
-    // printf("\n%ld\n", current_time);
-
-    // char timebuf[200];
-    // sprintf(timebuf, "%ld", current_time);
-    // printf("%s%ld\n",timebuf,sizeof(timebuf));
-    // send(newSocket,timebuf,200,0);
+    // printf("found == %s",message); // for debug
+    // if the command message equal to GETLOCALTIME
 
     time_t curTime;
     struct tm*time_info;
@@ -63,9 +58,8 @@ void * socketThread(void *arg)
     time(&curTime);
     time_info=localtime(&curTime);
     strftime(timeString,sizeof(timeString),"%H:%M",time_info);
-    printf("time:");
-    puts(timeString);
-    // send(newSocket,timeString,9,0);
+    printf("time:");   //debug
+    puts(timeString);  //debug
 
 
 
@@ -85,11 +79,11 @@ void * socketThread(void *arg)
 
 
 
-
+    // sending local time to java client
     send(newSocket,sendMessage,121,0);
 
   }else{
-    printf("not equal");
+    printf("INVALID COMMAND : not equal to the command string from client");
 
   }
 
@@ -97,17 +91,13 @@ void * socketThread(void *arg)
   // to do for local os ---------------------->
 
 
-  // strcpy(message,"Hello Client : ");
-  // strcat(message,client_message);
-  // strcat(message,"\n");
-  // strcpy(buffer,message);
+
 
 
 
   free(message);
   pthread_mutex_unlock(&lock);
   sleep(1);
-  // send(newSocket,buffer,20,0);
   printf("Exit socketThread \n %s",buffer);
   close(newSocket);
   pthread_exit(NULL);
@@ -142,7 +132,7 @@ int main(){
   //Bind the address struct to the socket 
   bind(serverSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
 
-  //Listen on the socket, with 40 max connection requests queued 
+  //Listen on the socket, with 50 max connection requests queued 
   if(listen(serverSocket,50)==0)
     printf("Listening\n");
   else
@@ -156,7 +146,7 @@ int main(){
         newSocket = accept(serverSocket, (struct sockaddr *) &serverStorage, &addr_size);
 
         //for each client request creates a thread and assign the client request to it to process
-       //so the main thread can entertain next request
+       //so the main thread can handle next request
         if( pthread_create(&tid[i++], NULL, socketThread, &newSocket) != 0 )
            printf("Failed to create thread\n");
 
