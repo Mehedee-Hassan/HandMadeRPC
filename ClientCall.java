@@ -6,6 +6,10 @@ import java.net.UnknownHostException;
 import java.io.OutputStream;
 import java.io.InputStream;
 
+/*
+ this file is combination of all classes of java client :
+ will separate the classes to it's own class file */
+
 
 class UtilData {
 	public static String IP = "127.0.0.1";
@@ -67,14 +71,14 @@ class GetLocalTime{
 		String commandString = UtilData.GETLOCALTIME;
 
 		for(int i = 0 ; i < commandString.length() ; i ++){
-			commandBuffer[i] = (byte)commandString.charAt(i); // buff [0,99] up to offset = 100
+			commandBuffer[i] = (byte)commandString.charAt(i); // buff [0,99] : inserting command string
 		}
 
 		int offset = 100;
 		String lengthMessString = Integer.toString(lenghtMess);//new String(lenghtMess);
 
 		for(int i = offset,j =0; i < offset+lengthMessString.length() ; i ++){
-			commandBuffer[i] = (byte)lengthMessString.charAt(j++); // buff [100,104] up to offset = 100
+			commandBuffer[i] = (byte)lengthMessString.charAt(j++); // buff [100,104] : inserting command len
 		}
 
 		offset = 104;
@@ -82,18 +86,18 @@ class GetLocalTime{
 		
 
 		for(int i = offset ,j =0; i < offset+timeSizeMessage.length(); i ++){
-			commandBuffer[i] = (byte)timeSizeMessage.charAt(j++); // buff [104,] up to offset = 100
+			commandBuffer[i] = (byte)timeSizeMessage.charAt(j++); // buff [104,] : time
 		}
 		offset = 104+timeSizeMessage.length();
 		String validSizeMessage = Integer.toString(valid.getSize());
 		for(int i = offset,j=0 ; i < offset+validSizeMessage.length() ; i ++){
-			commandBuffer[i] = (byte)validSizeMessage.charAt(j++); // buff [104,] up to offset = 100
+			commandBuffer[i] = (byte)validSizeMessage.charAt(j++); // buff [104,] : time len
 		}
 
 
 
 
-		System.out.println(new String(commandBuffer));
+		System.out.println(new String(commandBuffer));     //debug
 
 
 		// end buffer
@@ -140,7 +144,7 @@ class GetLocalTime{
 	      e.printStackTrace();
 	    }
 
-	    //below line is to read message from input
+		//below lines are used to read message from input
 		try {
 		   
 		    int lenOfCommandString = commandString.length;
@@ -184,14 +188,6 @@ class GetLocalTime{
 		}
 
 
-		// try{
-			  
-		// 	  Calendar calendar = Calendar.getInstance();
-		// 	  calendar.setTimeInMillis(millis);
-		// 	  System.out.println(calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE));
-		// } catch (IOException e) {
-		//     e.printStackTrace();
-		// }
 
 	    //below code to close the connection
 	    try {
@@ -234,9 +230,8 @@ class c_int{
 
 }
 
+
 // move to file c_char.java file
-
-
 class c_char{
 	char[] valid;
 
@@ -258,7 +253,5 @@ class c_char{
 
 
 
-
-// seperate file java 
 
 
